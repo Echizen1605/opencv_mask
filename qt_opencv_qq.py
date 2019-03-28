@@ -87,7 +87,6 @@ class myLabel(QLabel):
 		# 鼠标按下事件
 		# adjust_flag和drag_flag分别是对矩形框大小调整和矩形框位置调整的标志位，
 		# 当其中有任何一个为True时，表明矩形框已经绘制完成，否则表明当前事件为准备绘制
-		print(self.adjust_flag, self.drag_flag)
 		if not (self.adjust_flag or self.drag_flag):
 			self.draw_flag = True
 			self.start_x = event.x()
@@ -224,18 +223,19 @@ class myLabel(QLabel):
 	def paintEvent(self, event):
 		# 每次调用update时会触发该函数
 		super(myLabel, self).paintEvent(event)
-		rect = QRect(min(self.start_x, self.end_x), min(self.start_y, self.end_y), abs(self.end_x-self.start_x), abs(self.end_y-self.start_y))
-		painter = QPainter(self)
-		painter.setPen(QPen(Qt.red, 5, Qt.SolidLine))
-		painter.drawRect(rect)
-		points = self.get_four_point()
-		square_color = QColor()
-		square_color.setNamedColor('black')
-		# painter.fillRect(points[0][0]-3, points[0][1]-3, 6, 6, QColor(0xCCCC66))
-		painter.fillRect(points[0][0], points[0][1]-3, 6, 6, square_color)
-		painter.fillRect(points[1][0]-3, points[1][1]-3, 6, 6, square_color)
-		painter.fillRect(points[2][0]-3, points[2][1]-3, 6, 6, square_color)
-		painter.fillRect(points[3][0]-3, points[3][1]-3, 6, 6, square_color)
+		if self.drag_flag or self.adjust_flag or self.draw_flag:
+			rect = QRect(min(self.start_x, self.end_x), min(self.start_y, self.end_y), abs(self.end_x-self.start_x), abs(self.end_y-self.start_y))
+			painter = QPainter(self)
+			painter.setPen(QPen(Qt.red, 5, Qt.SolidLine))
+			painter.drawRect(rect)
+			points = self.get_four_point()
+			square_color = QColor()
+			square_color.setNamedColor('black')
+			# painter.fillRect(points[0][0]-3, points[0][1]-3, 6, 6, QColor(0xCCCC66))
+			painter.fillRect(points[0][0], points[0][1]-3, 6, 6, square_color)
+			painter.fillRect(points[1][0]-3, points[1][1]-3, 6, 6, square_color)
+			painter.fillRect(points[2][0]-3, points[2][1]-3, 6, 6, square_color)
+			painter.fillRect(points[3][0]-3, points[3][1]-3, 6, 6, square_color)
 
 
 class Example(QWidget):
@@ -258,6 +258,7 @@ class Example(QWidget):
 		self.lb.setCursor(Qt.CrossCursor)
 		self.lb.setFocusPolicy(Qt.ClickFocus)
 		self.lb.setMouseTracking(True)
+		self.lb.setAlignment(Qt.AlignCenter)
 		self.mainlayout.addWidget(self.lb)
 
 		self.setLayout(self.mainlayout)
@@ -265,10 +266,13 @@ class Example(QWidget):
 
 		self.show()
 	def keyPressEvent(self, event):
-		if event.key() == Qt.Key_Enter:
-			start_x, start_y = min(self.lb.start_x, self.lb.end_x), min(self.lb.start_y, self.lb.end_y)
-			end_x, end_y = max(self.lb.start_x, self.lb.end_x), max(self.lb.start_y, self.lb.end_y)
-			cv2.imwrite('result.jpg', self.img[start_y:end_y, start_x:end_x, ::-1])
+		if event.key() == Qt.Key_Enter or event.key() == 16777220:
+			if self.lb.start_x == 0 and self.lb.start_y == 0 and self.lb.end_x == 0 and self.lb.end_y == 0:
+				pass
+			else:
+				start_x, start_y = min(self.lb.start_x, self.lb.end_x), min(self.lb.start_y, self.lb.end_y)
+				end_x, end_y = max(self.lb.start_x, self.lb.end_x), max(self.lb.start_y, self.lb.end_y)
+				cv2.imwrite('result.jpg', self.img[start_y:end_y, start_x:end_x, ::-1])
 		if event.key() == Qt.Key_Escape:
 			self.close()
 
